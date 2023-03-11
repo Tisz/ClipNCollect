@@ -14,8 +14,11 @@ namespace ClipNCollect
     public class ClipNCollectApp : ApplicationContext
     {
         NotifyIcon notifyIcon = new NotifyIcon();
+        CountDisplay currentCountDisplay = null;
         public ClipNCollectApp()
         {
+            ToolStripMenuItem letterCountMenuItem = new ToolStripMenuItem("Letter Count", null, new EventHandler(DoLetterCount));
+            ToolStripMenuItem wordCountMenuItem = new ToolStripMenuItem("Word Count", null, new EventHandler(DoWordCount));
             ToolStripMenuItem configMenuItem = new ToolStripMenuItem("Configuration", null, new EventHandler(ShowConfig));
             ToolStripMenuItem exitMenuItem = new ToolStripMenuItem("Exit", null, new EventHandler(Exit));
 
@@ -23,13 +26,16 @@ namespace ClipNCollect
             notifyIcon.Icon = IconResources.ClipNCollect;
 
             notifyIcon.ContextMenuStrip = new ContextMenuStrip();
+            notifyIcon.ContextMenuStrip.Items.Add(letterCountMenuItem);
+            notifyIcon.ContextMenuStrip.Items.Add(wordCountMenuItem);
+            notifyIcon.ContextMenuStrip.Items.Add("-");
             notifyIcon.ContextMenuStrip.Items.Add(configMenuItem);
             notifyIcon.ContextMenuStrip.Items.Add("-");
             notifyIcon.ContextMenuStrip.Items.Add(exitMenuItem);
             notifyIcon.Visible = true;
         }
 
-        Form1 infoWindow = new Form1();
+        InfoForm infoWindow = new InfoForm();
         void ShowConfig(object sender, EventArgs e)
         {
             // If we are already showing the window, merely focus it.
@@ -40,6 +46,41 @@ namespace ClipNCollect
             else
             {
                 infoWindow.ShowDialog();
+            }
+        }
+
+        void RemoveExistingCountDisplay()
+        {
+            if (currentCountDisplay != null && !currentCountDisplay.IsDisposed)
+            {
+                currentCountDisplay.Close();
+                currentCountDisplay.Dispose();
+            }
+        }
+
+        void DoWordCount(object sender, EventArgs e)
+        {
+            RemoveExistingCountDisplay();
+
+            var clipboardText = Clipboard.GetText();
+            if (!string.IsNullOrEmpty(clipboardText))
+            {
+                int wordsCount = clipboardText.Split(' ').Length;
+                currentCountDisplay = new CountDisplay("Word Count", wordsCount.ToString());
+                currentCountDisplay.Show();
+            }
+        }
+
+        void DoLetterCount(object sender, EventArgs e)
+        {
+            RemoveExistingCountDisplay();
+
+            var clipboardText = Clipboard.GetText();
+            if (!string.IsNullOrEmpty(clipboardText))
+            {
+                var letterCount = clipboardText.Length;
+                currentCountDisplay = new CountDisplay("Letter Count", letterCount.ToString());
+                currentCountDisplay.Show();
             }
         }
 
